@@ -1,10 +1,10 @@
 <?php
 
-    if(isset($_POST['proc']))  // POSTリクエストを受け取った場合
+    // POSTリクエストを受け取った場合
+    if(isset($_POST['proc']))  
     {
         if($_POST['proc'] === 'register')
         {
-
             // SQL文の作成
             $r_sql = "INSERT INTO practice (id, number, text, flag, ref_num) VALUES ";
             foreach($_POST['data'] as $row)
@@ -30,17 +30,20 @@
     }
    
 
-    // DBにデータが存在する場合は、表示用にデータを取得する
+
+    /* POSTリクエストを受け取っていない場合はここから読み込んでいく */
+
+    // DBにデータが存在するかチェック
+    // 存在する場合はデータを全て（今回は5件分）取得する
     $data = DB::DB_DataExistCheck();
     
-
     // 登録用テキストボックスと、チェックボックスの表示
     for($i = 1; $i <= 5; $i++){
         echo '<div>';
         echo '<span>テキスト',$i,'</span>';
         echo '<span><input type="text" id="input',$i,'"';
 
-        // DBにデータが存在した場合、'text'列の値をテキストボックスの value に追加する（エスケープ処理も入れる）
+        // DBにデータが存在した場合、'text'列の値をテキストボックスのタグに value を追加する（エスケープ処理も入れる）
         if(isset($data[$i-1]))
         {
             echo ' value="',DB::h($data[$i-1]['text']),'"';
@@ -49,7 +52,7 @@
         echo '></span>';
         echo '<label for="check',$i,'"><span><input type="checkbox" id="check',$i,'"';
 
-        // DBにデータが存在した場合、'flag'列の値が 1 ならチェックボックスに checkd を追加する
+        // DBにデータが存在した場合、'flag'列の値が 1 ならチェックボックスのタグに checked を追加する
         if(isset($data[$i-1]) && $data[$i-1]['flag'] == 1)
         {
             echo ' checked';
@@ -65,8 +68,10 @@
     echo '</div>';
 
 
+    // メソッドをまとめたクラス
     class DB
     {
+        // DB接続 & クエリ実行メソッド
         public static function DB_Connect($sql)
         {
             //データベース接続用変数
@@ -93,13 +98,15 @@
             return $result;
         }
 
+       
+        // データベースのデータ存在チェックメソッド
         public static function DB_DataExistCheck()
         {
             // DBにデータが存在するかチェック
             $sql = "SELECT * FROM practice ORDER BY id"; 
             $dbResults = DB::DB_Connect($sql);
 
-            // データが存在する場合は、HTML表示用変数 $data にDBの値をセット
+            // データが存在する場合は、HTML表示用変数 $data(38行目) にDBから取得した値をセット
             if($dbResults->num_rows > 0)
             {   
                 for($i = 0; $i < 5; $i++)
@@ -114,7 +121,9 @@
 
             return $results;
         }
+        
 
+        // エスケープ処理用メソッド（メソッド名を1文字に省略するだけ）
         public static function h($str)
         {
             return htmlspecialchars($str);
